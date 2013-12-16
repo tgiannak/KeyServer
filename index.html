@@ -1,0 +1,68 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <style>
+            .buzzer {
+                width:100%;
+                height:14%;
+                margin-bottom:5%;
+                font-size:48pt
+            }
+            .choiceBtn {
+                width:100%;
+                height:33%;
+                font-size:48pt
+            }
+            .textSubmit {
+                width:30%;
+                height:16%;
+                font-size:48pt
+            }
+        </style>
+        <script>
+            var pwd = window.prompt("Enter Password");
+
+            function httpGet(theUrl)
+            {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open( "GET", theUrl, true);
+                xmlHttp.send( null );
+            }
+
+            function send(text)
+            {
+                httpGet('/key?str='+encodeURIComponent(text)+'&pwd='+encodeURIComponent(pwd));
+            }
+
+            function choose(choice)
+            {
+                document.getElementById("pick").style.display="none";
+                document.getElementById("choice").style.display="block";
+                document.getElementById("buzzer").value = choice.toUpperCase();
+                document.getElementById("buzzer").on = function() {send(choice); return false;};
+            }
+
+            function promptSend()
+            {
+                var text = window.prompt("Text Answer:")
+                send(text + "\r\n");
+            }
+        </script>
+    </head>
+    <body>
+        <div id="pick">
+            <input type="button" value="Q" class="choiceBtn" onClick="choose('q')" />
+            <input type="button" value="B" class="choiceBtn" onClick="choose('b')" />
+            <input type="button" value="P" class="choiceBtn" onClick="choose('p')" />
+        </div>
+        <div id="choice" style="display:none">
+            <input id="buzzer" type="button" class="buzzer" />
+            <input id="buzzer4" type="button" value="S" class="buzzer" onTouchStart="send('s')" />
+            <input id="buzzer1" type="button" value="1" class="buzzer" onTouchStart="send('1')" />
+            <input id="buzzer2" type="button" value="2" class="buzzer" onTouchStart="send('2')" />
+            <input id="buzzer3" type="button" value="3" class="buzzer" onTouchStart="send('3')" />
+            <input id="buzzer4" type="button" value="4" class="buzzer" onTouchStart="send('4')" />
+            <input id="rawSubmit" type="button" value="Text" class="buzzer" onClick="promptSend()" />
+        </div>
+    </body>
+</html>
