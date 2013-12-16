@@ -10,7 +10,7 @@ public class KeyServer
     public static void Main(string[] args)
     {
         var page = LoadPage();
-        var pwd = Guid.NewGuid().ToString().Substring(0,5);
+        var pwd = Guid.NewGuid().ToString().Substring(0,8);
 
         var listener = new HttpListener();
         listener.Prefixes.Add("http://*:8080/");
