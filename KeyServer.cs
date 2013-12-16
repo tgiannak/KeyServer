@@ -16,13 +16,25 @@ public class KeyServer
         listener.Prefixes.Add("http://*:8080/");
 
         Console.WriteLine("Password: " + pwd);
-        Console.WriteLine("Listening...");
+
+        Console.WriteLine("Starting...");
         listener.Start();
-        while (true)
-        {
-            var ctx = listener.GetContext();
-            new Thread(new RequestHandler(page, pwd, ctx).HandleRequest).Start();
-        }
+
+        var running = true;
+        var t = new Thread(() => {
+            while (running)
+            {
+                var ctx = listener.GetContext();
+                new Thread(new RequestHandler(page, pwd, ctx).HandleRequest).Start();
+            }
+        });
+
+        Console.WriteLine("Listening...");
+        Console.WriteLine("Press <ENTER> to stop.");
+
+        Console.ReadLine();
+        running = false;
+        listener.Stop();
     }
 
     public static string LoadPage()
