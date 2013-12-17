@@ -18,7 +18,7 @@
             }
         </style>
         <script>
-            var pwd = window.prompt("Enter Password");
+            var pwd = window.prompt("Enter Password") || "";
             var pwdQS = '&pwd='+encodeURIComponent(pwd);
 
             function httpGet(theUrl)
@@ -44,7 +44,9 @@
             function promptSend()
             {
                 var text = window.prompt("Text Answer:")
-                send(text + "\r\n");
+                if (text != null) {
+                    send(text + "\n");
+                }
             }
 
             function setBuzzerPanel(panelName)
@@ -70,14 +72,14 @@
             <input id="buzzer2" type="button" value="2" class="buzzer" onTouchStart="send('2')" />
             <input id="buzzer3" type="button" value="3" class="buzzer" onTouchStart="send('3')" />
             <input id="buzzer4" type="button" value="4" class="buzzer" onTouchStart="send('4')" />
-            <input id="fwdBtn" type="button" value="->" class="buzzer" onClick="setBuzzerPanel('choice2')" />
+            <input id="fwdBtn" type="button" value="->" class="buzzer" onTouchStart="setBuzzerPanel('choice2')" />
         </div>
         <div id="choice2" class="buzzerPanel">
             <input id="buzzerS" type="button" value="S" class="buzzer" onTouchStart="send('s')" />
             <input id="buzzerA" type="button" value="A" class="buzzer" onTouchStart="send('a')" />
             <input id="buzzerB" type="button" value="B" class="buzzer" onTouchStart="send('b')" />
             <input id="rawSubmit" type="button" value="Text" class="buzzer" onClick="promptSend()" />
-            <input id="backBtn" type="button" value="<-" class="buzzer" onClick="setBuzzerPanel('choice')" />
+            <input id="backBtn" type="button" value="<-" class="buzzer" onTouchStart="setBuzzerPanel('choice')" />
         </div>
     </body>
 </html>

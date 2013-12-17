@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -11,9 +14,12 @@ public class KeyServer
         new KeyServer().Start();
     }
 
+    /// <summary>
+    /// Starts the server.
+    /// </summary>
     public void Start()
     {
-        var page = LoadPage();
+        var pages = LoadPages();
         var pwd = GetPassword();
         var port = GetPort();
 
@@ -26,16 +32,20 @@ public class KeyServer
         listener.Start();
 
         var running = true;
+        // runs the request handler dispatch thread
         var t = new Thread(() => {
             while (running)
             {
                 try
                 {
                     var ctx = listener.GetContext();
-                    new Thread(new RequestHandler(page, pwd, ctx).HandleRequest).Start();
+                    var handler = new RequestHandler(pages, pwd, ctx);
+                    // start a thread to handle the request and move on
+                    new Thread(handler.HandleRequest).Start();
                 }
                 catch (Exception ex)
                 {
+                    // if we are done running, no need to worry about error messages
                     if (running)
                     {
                         Console.WriteLine(ex.Message);
@@ -53,22 +63,46 @@ public class KeyServer
         listener.Stop();
     }
 
-    public static string LoadPage()
+    /// <summary>
+    /// Loads all of the pages in the "ui" directory into memory, keyed by the extensionless file name.
+    /// </summary>
+    private static IDictionary<string, string> LoadPages()
     {
-        var file = new FileInfo("index.html");
+        var folder = new DirectoryInfo("ui");
+        return folder.GetFiles()
+                     .Where(f => f.Extension.ToLower() == ".html")
+                     .ToDictionary(GetFileKey, GetFileContents);
+    }
+
+    private static string GetFileKey(FileInfo file)
+    {
+        return Path.GetFileNameWithoutExtension(file.Name);
+    }
+
+    /// <summary>
+    /// Reads a whole file into memory as a string.
+    /// </summary>
+    private static string GetFileContents(FileInfo file)
+    {
         using (var reader = file.OpenText())
         {
             return reader.ReadToEnd();
         }
     }
 
-    public static string GetPassword()
+    /// <summary>
+    /// Asks the user for the password to use.
+    /// </summary>
+    private static string GetPassword()
     {
         Console.Write("Set password: ");
         return Console.ReadLine();
     }
 
-    public static ushort GetPort()
+    /// <summary>
+    /// Asks the user for the port to use.
+    /// </summary>
+    private static ushort GetPort()
     {
         ushort port;
         while (true)
@@ -91,32 +125,41 @@ public class KeyServer
     }
 }
 
+
+/// <summary>
+/// Handles a request based on the HttpListenerContext.
+/// </summary>
 public class RequestHandler
 {
     private readonly HttpListenerContext ctx;
     private readonly string pwd;
-    private readonly string page;
+    private readonly IDictionary<string, string> pages;
 
-    public RequestHandler(string page, string pwd, HttpListenerContext ctx)
+    public RequestHandler(IDictionary<string, string> pages, string pwd, HttpListenerContext ctx)
     {
-        this.page = page;
+        this.pages = pages;
         this.pwd = pwd;
         this.ctx = ctx;
+    }
+
+    public void AttemptHandleRequest()
+    {
+        switch (ctx.Request.Url.AbsolutePath)
+        {
+            case "/key":
+                HandleKey();
+                break;
+            default:
+                HandlePage(ctx.Request.Url.AbsolutePath);
+                break;
+        }
     }
 
     public void HandleRequest()
     {
         try
         {
-            switch (ctx.Request.Url.AbsolutePath)
-            {
-                case "/key":
-                    HandleKey();
-                    break;
-                default:
-                    WriteResponse(page);
-                    break;
-            }
+            AttemptHandleRequest();
         }
         catch (Exception ex)
         {
@@ -128,7 +171,43 @@ public class RequestHandler
         }
     }
 
-    public void WriteResponse(string responseContent)
+    /// <summary>
+    /// Lists the available pages.
+    /// </summary>
+    private string AvailablePages()
+    {
+        var sb = new StringBuilder(@"<html><head>
+                <meta name=""viewport"" content=""width=device-width"">
+                </head><body style=""font-size:36pt""><ul>");
+        foreach (var page in pages)
+        {
+            sb.AppendFormat(@"<li><a href=""{0}"">{0}</a></li>", page.Key);
+        }
+        sb.Append(@"</ul></body></html>");
+        return sb.ToString();
+    }
+
+    private void HandlePage(string url)
+    {
+        WriteResponse(RenderPage(url));
+    }
+
+    private string RenderPage(string url)
+    {
+        var pageName = url.TrimStart('/');
+        string page;
+        if (!pages.TryGetValue(pageName, out page))
+        {
+            return AvailablePages();
+        }
+        return page;
+    }
+
+    /// <summary>
+    /// Writes the string to the response stream and sets the Content-Length
+    /// header appropriately.
+    /// </summary>
+    private void WriteResponse(string responseContent)
     {
         var response = ctx.Response;
         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
@@ -138,7 +217,12 @@ public class RequestHandler
         output.Write(buffer,0,buffer.Length);
     }
 
-    public void HandleKey()
+    /// <summary>
+    /// Sends the value for str in the query string as keyboard presses, as
+    /// long as the password is correct.  If the password is incorrect, does
+    /// nothing.
+    /// </summary>
+    private void HandleKey()
     {
         if (ctx.Request.QueryString["pwd"] == pwd)
         {
