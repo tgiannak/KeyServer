@@ -35,10 +35,11 @@ the network.
 Basic Usage
 -----------
 
-Compile with csc, run the executable, and follow the instructions. Point your
-phone's browser at your machine, select the UI you want, and type in the
-password you want to use. Then start your game, pick your buzzer key on your
-phone (or do whatever other configuration needs doing), and play.
+Compile with csc, run the executable in Administrator mode, and follow the
+instructions. Point your phone's browser at your machine, select the UI you
+want, and type in the password you want to use. Then start your game, pick your
+buzzer key on your phone (or do whatever other configuration needs doing), and
+play.
 
 I recommend turning off auto-rotate on your phone, since the HTML interface
 does not handle landscape mode well.
