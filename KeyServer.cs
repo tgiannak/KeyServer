@@ -24,10 +24,21 @@ public class KeyServer
         var t = new Thread(() => {
             while (running)
             {
-                var ctx = listener.GetContext();
-                new Thread(new RequestHandler(page, pwd, ctx).HandleRequest).Start();
+                try
+                {
+                    var ctx = listener.GetContext();
+                    new Thread(new RequestHandler(page, pwd, ctx).HandleRequest).Start();
+                }
+                catch (Exception ex)
+                {
+                    if (running)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
             }
         });
+        t.Start();
 
         Console.WriteLine("Listening...");
         Console.WriteLine("Press <ENTER> to stop.");
@@ -70,8 +81,7 @@ public class RequestHandler
                     HandleKey();
                     break;
                 default:
-                    //WriteResponse(page);
-                    WriteResponse(KeyServer.LoadPage());
+                    WriteResponse(page);
                     break;
             }
         }
