@@ -6,17 +6,22 @@ using System.Windows.Forms;
 
 public class KeyServer
 {
-
     public static void Main(string[] args)
     {
+        new KeyServer().Start();
+    }
+
+    public void Start()
+    {
         var page = LoadPage();
-        var pwd = Guid.NewGuid().ToString().Substring(0,8);
+        var pwd = GetPassword();
+        var port = GetPort();
 
         var listener = new HttpListener();
-        listener.Prefixes.Add("http://*:8080/");
+        var prefix = "http://*:"+port+"/";
+        listener.Prefixes.Add(prefix);
 
-        Console.WriteLine("Password: " + pwd);
-
+        Console.WriteLine("Binding to prefix: " + prefix);
         Console.WriteLine("Starting...");
         listener.Start();
 
@@ -54,6 +59,34 @@ public class KeyServer
         using (var reader = file.OpenText())
         {
             return reader.ReadToEnd();
+        }
+    }
+
+    public static string GetPassword()
+    {
+        Console.Write("Set password: ");
+        return Console.ReadLine();
+    }
+
+    public static ushort GetPort()
+    {
+        ushort port;
+        while (true)
+        {
+            Console.Write("Set port (default 8080): ");
+            var portStr = Console.ReadLine();
+            if (string.IsNullOrEmpty(portStr))
+            {
+                return 8080;
+            }
+            else if (ushort.TryParse(portStr, out port))
+            {
+                return port;
+            }
+            else
+            {
+                Console.WriteLine("Could not parse port...");
+            }
         }
     }
 }
