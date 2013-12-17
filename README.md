@@ -36,9 +36,9 @@ Basic Usage
 -----------
 
 Compile with csc, run the executable, and follow the instructions. Point your
-phone's browser at your machine and type in the password you want to use. Once
-the server is running, start your game, pick your buzzer key on your phone, and
-play.
+phone's browser at your machine, select the UI you want, and type in the
+password you want to use. Then start your game, pick your buzzer key on your
+phone (or do whatever other configuration needs doing), and play.
 
 I recommend turning off auto-rotate on your phone, since the HTML interface
 does not handle landscape mode well.
@@ -48,4 +48,5 @@ Modifications to the UI
 -----------------------
 
 If you need a different interface, e.g. for a different version of "You Don't
-Know Jack", then just make your changes to index.html and restart the server.
+Know Jack", then just add a new HTML file to the ui directory and restart the
+server.
